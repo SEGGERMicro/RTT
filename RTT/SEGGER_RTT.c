@@ -1992,7 +1992,7 @@ int SEGGER_RTT_TerminalOut (unsigned char TerminalId, const char* s) {
         Status = 0;
       } else {
         _PostTerminalSwitch(pRing, TerminalId);
-        Status = (int)_WriteBlocking(pRing, s, FragLen);
+        Status = (int)_WriteNoCheck(pRing, s, FragLen);
         _PostTerminalSwitch(pRing, _ActiveTerminal);
       }
       break;
@@ -2006,7 +2006,7 @@ int SEGGER_RTT_TerminalOut (unsigned char TerminalId, const char* s) {
         Status = -1;
       } else {
         _PostTerminalSwitch(pRing, TerminalId);
-        Status = (int)_WriteBlocking(pRing, s, (FragLen < (Avail - 4u)) ? FragLen : (Avail - 4u));
+        Status = (int)_WriteNoCheck(pRing, s, (FragLen < (Avail - 4u)) ? FragLen : (Avail - 4u));
         _PostTerminalSwitch(pRing, _ActiveTerminal);
       }
       break;
