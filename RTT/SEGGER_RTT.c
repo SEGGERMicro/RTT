@@ -1670,8 +1670,8 @@ int SEGGER_RTT_ConfigUpBuffer(unsigned BufferIndex, const char* sName, void* pBu
   if (BufferIndex < SEGGER_RTT_MAX_NUM_UP_BUFFERS) {
     SEGGER_RTT_LOCK();
     pUp = &pRTTCB->aUp[BufferIndex];
+    pUp->sName          = sName;
     if (BufferIndex) {
-      pUp->sName        = sName;
       pUp->pBuffer      = (char*)pBuffer;
       pUp->SizeOfBuffer = BufferSize;
       pUp->RdOff        = 0u;
@@ -1721,8 +1721,8 @@ int SEGGER_RTT_ConfigDownBuffer(unsigned BufferIndex, const char* sName, void* p
   if (BufferIndex < SEGGER_RTT_MAX_NUM_DOWN_BUFFERS) {
     SEGGER_RTT_LOCK();
     pDown = &pRTTCB->aDown[BufferIndex];
+    pDown->sName          = sName;
     if (BufferIndex) {
-      pDown->sName        = sName;
       pDown->pBuffer      = (char*)pBuffer;
       pDown->SizeOfBuffer = BufferSize;
       pDown->RdOff        = 0u;
