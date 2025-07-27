@@ -3,7 +3,7 @@
 *                        The Embedded Experts                        *
 **********************************************************************
 *                                                                    *
-*            (c) 1995 - 2021 SEGGER Microcontroller GmbH             *
+*            (c) 1995 - 2025 SEGGER Microcontroller GmbH             *
 *                                                                    *
 *       www.segger.com     Support: support@segger.com               *
 *                                                                    *
@@ -41,11 +41,6 @@
 * DAMAGE.                                                            *
 *                                                                    *
 **********************************************************************
-*                                                                    *
-*       RTT version: 7.54                                           *
-*                                                                    *
-**********************************************************************
-
 ---------------------------END-OF-HEADER------------------------------
 File    : SEGGER_RTT_printf.c
 Purpose : Replacement for printf to write formatted data via RTT
@@ -323,7 +318,8 @@ int SEGGER_RTT_vprintf(unsigned BufferIndex, const char * sFormat, va_list * pPa
   char c;
   SEGGER_RTT_PRINTF_DESC BufferDesc;
   int v;
-  unsigned NumDigits;
+  unsigned char PrecisionSet;
+  unsigned Precision;
   unsigned FormatFlags;
   unsigned FieldWidth;
   char acBuffer[SEGGER_RTT_PRINTF_BUFFER_SIZE];
@@ -372,18 +368,26 @@ int SEGGER_RTT_vprintf(unsigned BufferIndex, const char * sFormat, va_list * pPa
       //
       // Filter out precision (number of digits to display)
       //
-      NumDigits = 0u;
+      PrecisionSet = 0;
+      Precision = 0u;
       c = *sFormat;
       if (c == '.') {
         sFormat++;
-        do {
-          c = *sFormat;
-          if ((c < '0') || (c > '9')) {
-            break;
-          }
+        if (*sFormat == '*') {
           sFormat++;
-          NumDigits = NumDigits * 10u + ((unsigned)c - '0');
-        } while (1);
+          PrecisionSet = 1;
+          Precision = va_arg(*pParamList, int);
+        } else {
+          do {
+            c = *sFormat;
+            if ((c < '0') || (c > '9')) {
+              break;
+            }
+            PrecisionSet = 1;
+            sFormat++;
+            Precision = Precision * 10u + ((unsigned)c - '0');
+          } while (1);
+        }
       }
       //
       // Filter out length modifier
@@ -410,27 +414,35 @@ int SEGGER_RTT_vprintf(unsigned BufferIndex, const char * sFormat, va_list * pPa
       }
       case 'd':
         v = va_arg(*pParamList, int);
-        _PrintInt(&BufferDesc, v, 10u, NumDigits, FieldWidth, FormatFlags);
+        _PrintInt(&BufferDesc, v, 10u, Precision, FieldWidth, FormatFlags);
         break;
       case 'u':
         v = va_arg(*pParamList, int);
-        _PrintUnsigned(&BufferDesc, (unsigned)v, 10u, NumDigits, FieldWidth, FormatFlags);
+        _PrintUnsigned(&BufferDesc, (unsigned)v, 10u, Precision, FieldWidth, FormatFlags);
         break;
       case 'x':
       case 'X':
         v = va_arg(*pParamList, int);
-        _PrintUnsigned(&BufferDesc, (unsigned)v, 16u, NumDigits, FieldWidth, FormatFlags);
+        _PrintUnsigned(&BufferDesc, (unsigned)v, 16u, Precision, FieldWidth, FormatFlags);
         break;
       case 's':
         {
           const char * s = va_arg(*pParamList, const char *);
+          if (s == NULL) {
+            s = "(NULL)";     // Print (NULL) instead of crashing or breaking, as it is more informative to the user.
+            PrecisionSet = 0; // Make sure (NULL) is printed, even when precision was set.
+          }
           do {
             c = *s;
             s++;
             if (c == '\0') {
               break;
             }
-           _StoreChar(&BufferDesc, c);
+            if ((PrecisionSet != 0) && (Precision == 0)) {
+              break;
+            }
+            _StoreChar(&BufferDesc, c);
+            Precision--;
           } while (BufferDesc.ReturnValue >= 0);
         }
         break;

@@ -3,7 +3,7 @@ RTT
 
 SEGGER RTT Sources
 
-https://www.segger.com/products/debug-probes/j-link/technology/about-real-time-transfer  
+https://www.segger.com/products/debug-probes/j-link/technology/about-real-time-transfer
 https://wiki.segger.com/RTT
 
 ## Included files
