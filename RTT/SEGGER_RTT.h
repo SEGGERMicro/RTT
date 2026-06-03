@@ -250,7 +250,6 @@ Purpose : Implementation of SEGGER real-time transfer which allows
 #endif
 
 #ifndef SEGGER_RTT_ASM  // defined when SEGGER_RTT.h is included from assembly file
-#include <stdlib.h>
 #include <stdarg.h>
 #include <stdint.h>
 
@@ -275,6 +274,17 @@ Purpose : Implementation of SEGGER real-time transfer which allows
 #endif
 #define SEGGER_RTT__CB_SIZE                              (16 + 4 + 4 + (SEGGER_RTT_MAX_NUM_UP_BUFFERS * 24) + (SEGGER_RTT_MAX_NUM_DOWN_BUFFERS * 24))
 #define SEGGER_RTT__CB_PADDING                           (SEGGER_RTT__ROUND_UP_2_CACHE_LINE_SIZE(SEGGER_RTT__CB_SIZE) - SEGGER_RTT__CB_SIZE)
+
+#if defined(__GNUC__) || defined(__clang__)
+//   https://gcc.gnu.org/onlinedocs/gcc-4.7.2/gcc/Function-Attributes.html
+#    ifdef __MINGW_PRINTF_FORMAT
+#        define SEGGER_RTT_PRINTF_FORMAT(STRING_INDEX, FIRST_TO_CHECK) __attribute__ ((format (__MINGW_PRINTF_FORMAT, STRING_INDEX, FIRST_TO_CHECK)))
+#    else
+#        define SEGGER_RTT_PRINTF_FORMAT(STRING_INDEX, FIRST_TO_CHECK) __attribute__ ((format (printf, STRING_INDEX, FIRST_TO_CHECK)))
+#    endif // __MINGW_PRINTF_FORMAT
+#else
+#    define SEGGER_RTT_PRINTF_FORMAT(STRING_INDEX, FIRST_TO_CHECK)
+#endif
 
 /*********************************************************************
 *
@@ -406,7 +416,7 @@ int     SEGGER_RTT_TerminalOut        (unsigned char TerminalId, const char* s);
 *
 **********************************************************************
 */
-int SEGGER_RTT_printf(unsigned BufferIndex, const char * sFormat, ...);
+int SEGGER_RTT_printf(unsigned BufferIndex, const char * sFormat, ...) SEGGER_RTT_PRINTF_FORMAT(2, 3);
 int SEGGER_RTT_vprintf(unsigned BufferIndex, const char * sFormat, va_list * pParamList);
 
 #ifdef __cplusplus

@@ -40,8 +40,6 @@ Additional information:
 
 #include "SEGGER_RTT.h"
 
-#include <string.h>                 // for memcpy
-
 /*********************************************************************
 *
 *       Configuration, default values
@@ -122,6 +120,7 @@ Additional information:
   #ifdef  MEMCPY
     #define SEGGER_RTT_MEMCPY(pDest, pSrc, NumBytes)      MEMCPY((pDest), (pSrc), (NumBytes))
   #else
+    #include <string.h>                 // for memcpy
     #define SEGGER_RTT_MEMCPY(pDest, pSrc, NumBytes)      memcpy((pDest), (pSrc), (NumBytes))
   #endif
 #endif
@@ -915,7 +914,7 @@ unsigned SEGGER_RTT_WriteSkipNoLock(unsigned BufferIndex, const void* pBuffer, u
   if (RdOff <= WrOff) {                                 // Case 1), 2) or 3)
     Avail = pRing->SizeOfBuffer - WrOff - 1u;           // Space until wrap-around (assume 1 byte not usable for case that RdOff == 0)
     if (Avail >= NumBytes) {                            // Case 1)?
-      memcpy((void*)pDst, pData, NumBytes);
+      SEGGER_RTT_MEMCPY((void*)pDst, pData, NumBytes);
       RTT__DMB();                     // Force data write to be complete before writing the <WrOff>, in case CPU is allowed to change the order of memory accesses
       pRing->WrOff = WrOff + NumBytes;
       return 1;
@@ -923,7 +922,7 @@ unsigned SEGGER_RTT_WriteSkipNoLock(unsigned BufferIndex, const void* pBuffer, u
     Avail += RdOff;                                     // Space incl. wrap-around
     if (Avail >= NumBytes) {                            // Case 2? => If not, we have case 3) (does not fit)
       Rem = pRing->SizeOfBuffer - WrOff;                // Space until end of buffer
-      memcpy((void*)pDst, pData, Rem);                  // Copy 1st chunk
+      SEGGER_RTT_MEMCPY((void*)pDst, pData, Rem);                  // Copy 1st chunk
       NumBytes -= Rem;
       //
       // Special case: First check that assumed RdOff == 0 calculated that last element before wrap-around could not be used
@@ -933,7 +932,7 @@ unsigned SEGGER_RTT_WriteSkipNoLock(unsigned BufferIndex, const void* pBuffer, u
       //
       if (NumBytes) {
         pDst = pRing->pBuffer + SEGGER_RTT_UNCACHED_OFF;
-        memcpy((void*)pDst, pData + Rem, NumBytes);
+        SEGGER_RTT_MEMCPY((void*)pDst, pData + Rem, NumBytes);
       }
       RTT__DMB();                     // Force data write to be complete before writing the <WrOff>, in case CPU is allowed to change the order of memory accesses
       pRing->WrOff = NumBytes;
@@ -942,7 +941,7 @@ unsigned SEGGER_RTT_WriteSkipNoLock(unsigned BufferIndex, const void* pBuffer, u
   } else {                                             // Potential case 4)
     Avail = RdOff - WrOff - 1u;
     if (Avail >= NumBytes) {                           // Case 4)? => If not, we have case 5) (does not fit)
-      memcpy((void*)pDst, pData, NumBytes);
+      SEGGER_RTT_MEMCPY((void*)pDst, pData, NumBytes);
       RTT__DMB();                     // Force data write to be complete before writing the <WrOff>, in case CPU is allowed to change the order of memory accesses
       pRing->WrOff = WrOff + NumBytes;
       return 1;
