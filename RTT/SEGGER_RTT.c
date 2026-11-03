@@ -14,7 +14,7 @@ Purpose : Implementation of SEGGER real-time transfer (RTT) which
           allows real-time communication on targets which support
           debugger memory accesses while the CPU is running.
 
-          SEGGER strongly recommends to not make any changes to or 
+          SEGGER strongly recommends to not make any changes to or
           modify the source code of this software in order to stay
           compatible with the RTT protocol and J-Link.
 
@@ -2049,7 +2049,7 @@ unsigned SEGGER_RTT_GetBytesInBuffer(unsigned BufferIndex) {
   if (RdOff <= WrOff) {
     r = WrOff - RdOff;
   } else {
-    r = pRTTCB->aUp[BufferIndex].SizeOfBuffer - (WrOff - RdOff);
+    r = pRTTCB->aUp[BufferIndex].SizeOfBuffer - (RdOff - WrOff);
   }
   return r;
 }
