@@ -433,9 +433,11 @@ int SEGGER_RTT_vprintf(unsigned BufferIndex, const char * sFormat, va_list * pPa
     // Write remaining data, if any
     //
     if (BufferDesc.Cnt != 0u) {
-      SEGGER_RTT_Write(BufferIndex, acBuffer, BufferDesc.Cnt);
+      if (SEGGER_RTT_Write(BufferIndex, acBuffer, BufferDesc.Cnt) != BufferDesc.Cnt) {
+        BufferDesc.ReturnValue = -1;
+      }
     }
-    BufferDesc.ReturnValue += (int)BufferDesc.Cnt;
+    // Bytes are already counted by _StoreChar; do not count the final chunk twice.
   }
   return BufferDesc.ReturnValue;
 }
